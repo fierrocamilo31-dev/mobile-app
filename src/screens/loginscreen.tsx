@@ -1,82 +1,157 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  View,
+  Alert,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
+  View,
 } from 'react-native';
 
-const LoginScreen = () => {
+type LoginScreenProps = {
+  onLogin: (name: string) => void;
+  onGoRegister: () => void;
+};
+
+const LoginScreen = ({ onLogin, onGoRegister }: LoginScreenProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [emailFocused, setEmailFocused] = useState(false);
+  const [passwordFocused, setPasswordFocused] = useState(false);
+
+  const parseNameFromEmail = (value: string) => {
+    const username = value.split('@')[0] || 'Usuario';
+    const nameParts = username.replace(/[._]/g, ' ').split(' ');
+    return nameParts
+      .filter(Boolean)
+      .map((part) => part[0].toUpperCase() + part.slice(1).toLowerCase())
+      .join(' ');
+  };
 
   const handleLogin = () => {
-    console.log('Login pressed');
+    if (!email.trim() || !password.trim()) {
+      setError('Por favor ingresa tu correo y contraseña.');
+      return;
+    }
+
+    const name = parseNameFromEmail(email.trim());
+    setError('');
+    Alert.alert('Bienvenido', `Has ingresado como ${name}`);
+    onLogin(name);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="dark-content" />
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
-      {/* HEADER */}
-      <View style={styles.header}>
-        <Text style={styles.bankName}>NovaBank</Text>
-        <Text style={styles.subtitle}>
-          Secure Mobile Banking
-        </Text>
-      </View>
+        {/* HEADER SECTION */}
+        <View style={styles.headerContainer}>
+          <View style={styles.logoCircle}>
+            <MaterialIcons name="account-balance" size={48} color="#FFFFFF" />
+          </View>
+          <Text style={styles.bankName}>NovaBank</Text>
+          <Text style={styles.tagline}>Banca Digital Segura</Text>
+        </View>
 
-      {/* CARD */}
-      <View style={styles.card}>
+        {/* LOGIN FORM SECTION */}
+        <View style={styles.formContainer}>
+          <View style={styles.formHeader}>
+            <Text style={styles.formTitle}>Bienvenido</Text>
+            <Text style={styles.formSubtitle}>Inicia sesión con tu cuenta</Text>
+          </View>
 
-        <Text style={styles.title}>Welcome Back</Text>
+          {/* EMAIL INPUT */}
+          <View style={styles.inputGroup}>
+            <View style={styles.inputLabelRow}>
+              <MaterialIcons name="email" size={18} color="#6366F1" />
+              <Text style={styles.inputLabel}>Correo electrónico</Text>
+            </View>
+            <View style={[styles.inputContainer, emailFocused && styles.inputContainerFocused]}>
+              <TextInput
+                style={styles.input}
+                placeholder="usuario@ejemplo.com"
+                placeholderTextColor="#CBD5E1"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
+                onFocus={() => setEmailFocused(true)}
+                onBlur={() => setEmailFocused(false)}
+              />
+            </View>
+          </View>
 
-        {/* EMAIL */}
-        <Text style={styles.label}>Email</Text>
+          {/* PASSWORD INPUT */}
+          <View style={styles.inputGroup}>
+            <View style={styles.inputLabelRow}>
+              <MaterialIcons name="lock" size={18} color="#EC4899" />
+              <Text style={styles.inputLabel}>Contraseña</Text>
+            </View>
+            <View style={[styles.inputContainer, passwordFocused && styles.inputContainerFocused]}>
+              <TextInput
+                style={styles.input}
+                placeholder="••••••••"
+                placeholderTextColor="#CBD5E1"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+                onFocus={() => setPasswordFocused(true)}
+                onBlur={() => setPasswordFocused(false)}
+              />
+              <TouchableOpacity
+                style={styles.eyeButton}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <MaterialIcons
+                  name={showPassword ? 'visibility' : 'visibility-off'}
+                  size={20}
+                  color="#94A3B8"
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your email"
-          placeholderTextColor="#94A3B8"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-        />
+          {/* ERROR MESSAGE */}
+          {error ? (
+            <View style={styles.errorContainer}>
+              <MaterialIcons name="error-outline" size={18} color="#EF4444" />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          ) : null}
 
-        {/* PASSWORD */}
-        <Text style={styles.label}>Password</Text>
+          {/* LOGIN BUTTON */}
+          <TouchableOpacity
+            style={styles.loginButton}
+            onPress={handleLogin}
+            activeOpacity={0.8}
+          >
+            <MaterialIcons name="login" size={20} color="#FFFFFF" />
+            <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
+          </TouchableOpacity>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your password"
-          placeholderTextColor="#94A3B8"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+          {/* FORGOT PASSWORD */}
+          <TouchableOpacity style={styles.forgotButton}>
+            <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
+          </TouchableOpacity>
+        </View>
 
-        {/* LOGIN BUTTON */}
-        <TouchableOpacity
-          style={styles.loginButton}
-          onPress={handleLogin}
-        >
-          <Text style={styles.loginButtonText}>
-            Login
-          </Text>
-        </TouchableOpacity>
+        {/* REGISTER SECTION */}
+        <View style={styles.registerContainer}>
+          <Text style={styles.registerLabel}>¿No tienes cuenta?</Text>
+          <TouchableOpacity onPress={onGoRegister} style={styles.registerButton}>
+            <Text style={styles.registerButtonText}>Regístrate aquí</Text>
+            <MaterialIcons name="arrow-forward" size={16} color="#6366F1" />
+          </TouchableOpacity>
+        </View>
 
-        {/* REGISTER */}
-        <TouchableOpacity>
-          <Text style={styles.registerText}>
-            I don't have an account
-          </Text>
-        </TouchableOpacity>
-
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -84,93 +159,181 @@ const LoginScreen = () => {
 export default LoginScreen;
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
-    backgroundColor: '#0F172A',
+    backgroundColor: '#F0F4F8',
   },
-
-  header: {
-    paddingHorizontal: 30,
-    marginTop: 80,
-    marginBottom: 40,
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: 30,
   },
-
+  headerContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+  },
+  logoCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#6366F1',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 6,
+  },
   bankName: {
-    color: '#FFFFFF',
-    fontSize: 38,
-    fontWeight: 'bold',
-    letterSpacing: 1,
+    fontSize: 36,
+    fontWeight: '900',
+    color: '#1E293B',
+    letterSpacing: -0.5,
+    marginBottom: 8,
   },
-
-  subtitle: {
-    color: '#CBD5E1',
-    marginTop: 10,
-    fontSize: 16,
+  tagline: {
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '500',
+    letterSpacing: 0.5,
   },
-
-  card: {
-    flex: 1,
+  formContainer: {
+    marginHorizontal: 20,
     backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    padding: 30,
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 3,
+    marginBottom: 24,
   },
-
-  title: {
-    fontSize: 30,
-    fontWeight: '700',
-    color: '#0F172A',
-    marginBottom: 35,
+  formHeader: {
+    marginBottom: 28,
   },
-
-  label: {
-    color: '#334155',
-    fontSize: 15,
+  formTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#1E293B',
+    marginBottom: 6,
+  },
+  formSubtitle: {
+    fontSize: 14,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  inputLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 10,
-    fontWeight: '600',
   },
-
-  input: {
-    backgroundColor: '#F1F5F9',
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#1E293B',
+    marginLeft: 8,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
     borderRadius: 14,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    fontSize: 16,
-    marginBottom: 22,
-    color: '#0F172A',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#E2E8F0',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
   },
-
+  inputContainerFocused: {
+    borderColor: '#6366F1',
+    backgroundColor: '#F5F3FF',
+  },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: '#1E293B',
+    fontWeight: '500',
+    paddingHorizontal: 10,
+  },
+  eyeButton: {
+    padding: 8,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 20,
+    borderLeftWidth: 4,
+    borderLeftColor: '#EF4444',
+  },
+  errorText: {
+    color: '#DC2626',
+    fontSize: 13,
+    fontWeight: '600',
+    marginLeft: 8,
+    flex: 1,
+  },
   loginButton: {
-    backgroundColor: '#0F172A',
-    paddingVertical: 18,
+    flexDirection: 'row',
+    backgroundColor: '#6366F1',
+    paddingVertical: 16,
     borderRadius: 14,
     alignItems: 'center',
-    marginTop: 10,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 5,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
+    justifyContent: 'center',
+    marginBottom: 16,
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 4,
   },
-
   loginButtonText: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
+    marginLeft: 8,
+    letterSpacing: 0.5,
   },
-
-  registerText: {
-    textAlign: 'center',
-    marginTop: 28,
-    color: '#2563EB',
-    fontSize: 15,
+  forgotButton: {
+    alignItems: 'center',
+  },
+  forgotText: {
+    fontSize: 13,
+    color: '#6366F1',
     fontWeight: '600',
+    textDecorationLine: 'underline',
   },
-
+  registerContainer: {
+    marginHorizontal: 20,
+    alignItems: 'center',
+  },
+  registerLabel: {
+    fontSize: 14,
+    color: '#64748B',
+    marginBottom: 10,
+    fontWeight: '500',
+  },
+  registerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F4F8',
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#E2E8F0',
+  },
+  registerButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#6366F1',
+    marginRight: 6,
+  },
 });
